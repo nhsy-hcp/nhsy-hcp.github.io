@@ -6,7 +6,7 @@ hide:
 
 # My Example Labs
 
-Hands-on examples and reference implementations for HashiCorp tools and modern cloud infrastructure automation.
+Hands-on examples for HashiCorp tools and modern cloud infrastructure automation.
 
 !!! warning "Disclaimer"
     The information and repositories provided on this site are for demonstration and educational purposes only. They should not be used in production environments without proper review, hardening, and testing. No warranty, guarantee, or support is provided. Use at your own risk. This site is not officially affiliated with or endorsed by HashiCorp.
