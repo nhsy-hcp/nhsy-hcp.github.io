@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# HashiCorp Implementation Examples
+# My Example Labs
 
 Hands-on examples and reference implementations for HashiCorp tools and modern cloud infrastructure automation.
 
