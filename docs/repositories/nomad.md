@@ -12,12 +12,15 @@ Multi-datacentre Consul and Nomad on GCP.
 
 **Description**: Terraform and Packer project for deploying resilient, multi-datacentre HashiCorp Consul and Nomad clusters on Google Cloud Platform for running containerised and non-containerised workloads.
 
----
+[//]: # (---)
 
-## terraform-gcp-nomad
+[//]: # (## terraform-gcp-nomad)
 
-Terraform infrastructure for HashiCorp Nomad clusters on Google Cloud Platform.
+[//]: # ()
+[//]: # (Terraform infrastructure for HashiCorp Nomad clusters on Google Cloud Platform.)
 
-[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/terraform-gcp-nomad){ .md-button }
+[//]: # ()
+[//]: # ([:fontawesome-brands-github: View Repository]&#40;https://github.com/nhsy-hcp/terraform-gcp-nomad&#41;{ .md-button })
 
-**Description**: Infrastructure as code for deploying production-ready Nomad clusters on GCP using Terraform, enabling flexible workload orchestration across cloud infrastructure.
+[//]: # ()
+[//]: # (**Description**: Infrastructure as code for deploying production-ready Nomad clusters on GCP using Terraform, enabling flexible workload orchestration across cloud infrastructure.)
