@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    cmds:
+      - task --list
+    silent: true
+
+  install:
+    cmds:
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+
+  up:
+    cmds:
+      - mkdocs serve

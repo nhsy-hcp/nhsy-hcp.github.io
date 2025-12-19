@@ -1,0 +1,152 @@
+site_name: nhsy-hcp
+site_url: https://nhsy-hcp.github.io
+site_description: HashiCorp Solutions & Infrastructure as Code
+site_author: nhsy-hcp
+
+repo_name: nhsy-hcp
+repo_url: https://github.com/nhsy-hcp
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/terraform
+
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/nhsy-hcp
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/narish-samplay/
+
+  generator: false
+
+copyright: Copyright &copy; 2026 nhsy-hcp
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # PyMdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/abbreviations.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+  - tags
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      fallback_to_build_date: true
+
+nav:
+  - Home: index.md
+#  - HashiCorp:
+#    - Overview: hashicorp/index.md
+#    - Terraform:
+#      - Getting Started: hashicorp/terraform/getting-started.md
+#      - Best Practices: hashicorp/terraform/best-practices.md
+#      - Modules: hashicorp/terraform/modules.md
+#      - State Management: hashicorp/terraform/state.md
+#    - Vault:
+#      - Overview: hashicorp/vault/index.md
+#      - Secrets Management: hashicorp/vault/secrets.md
+#      - Authentication: hashicorp/vault/auth.md
+#    - Consul:
+#      - Overview: hashicorp/consul/index.md
+#      - Service Mesh: hashicorp/consul/service-mesh.md
+#    - Nomad:
+#      - Overview: hashicorp/nomad/index.md
+#    - Packer:
+#      - Overview: hashicorp/packer/index.md
+#    - HCP:
+#      - Overview: hashicorp/hcp/index.md
+#      - Terraform Cloud: hashicorp/hcp/terraform-cloud.md
+#  - Cloud Platforms:
+#    - AWS: cloud/aws.md
+#    - Azure: cloud/azure.md
+#    - GCP: cloud/gcp.md
+  - Repositories:
+    - Overview: repositories/index.md
+    - Nomad: repositories/nomad.md
+    - Terraform: repositories/terraform.md
+    - Vault: repositories/vault.md
+  - About: about.md
