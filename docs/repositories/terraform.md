@@ -12,8 +12,8 @@ Terraform Stacks example deployment for Google Cloud Platform infrastructure.
 
 ---
 
-## terraform-gcp-vault-gke
+## terraform-gcp-runtask-budgets
 
-Terraform modules for deploying HashiCorp Vault on Google Kubernetes Engine.
+Terraform Cloud Run Task for enforcing GCP budget controls and preventing deployments when spending limits are exceeded.
 
-[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/terraform-gcp-vault-gke){ .md-button }
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/terraform-gcp-runtask-budgets){ .md-button }

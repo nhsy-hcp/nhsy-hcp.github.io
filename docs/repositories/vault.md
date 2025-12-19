@@ -38,6 +38,22 @@ Complete Docker-based Vault development environment with integrated HA setup.
 
 ---
 
+## multipass-vault-hsm
+
+Vault deployment with HSM support using SoftHSM and Multipass for PKI operations and managed key storage.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/multipass-vault-hsm){ .md-button }
+
+---
+
+## terraform-gcp-vault-gke
+
+Terraform modules for deploying HashiCorp Vault on Google Kubernetes Engine.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/terraform-gcp-vault-gke){ .md-button }
+
+---
+
 ## terraform-vault-onboarding
 
 Terraform modules for automated Vault onboarding and configuration management.
