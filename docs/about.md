@@ -1,7 +1,7 @@
 # About
 
 ## Professional Summary
-As a dedicated, self-motivated professional, I specialise in coaching high-performing teams and driving strategic technical initiatives. My expertise encompasses the full spectrum of infrastructure modernisation, from legacy system transitions to cutting-edge cloud-native architectures.
+As a dedicated, self-motivated professional, I specialise in coaching high-performing teams, building platforms, and driving strategic technical initiatives. My expertise encompasses the full spectrum of infrastructure modernisation, from legacy system transitions to cutting-edge cloud-native architectures.
 
 ## Core Expertise
 
