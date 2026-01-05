@@ -75,3 +75,11 @@ Vault Kubernetes JWT migration utility using Vault agent for seamless authentica
 Load generation tool for HashiCorp Vault performance testing and benchmarking.
 
 [:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/vault-loadgen){ .md-button }
+
+---
+
+## vault-regression-testing
+
+Automated regression testing framework for HashiCorp Vault using Docker, Terraform, and Pytest to validate authentication methods, secret engines, and security configurations.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/vault-regression-testing){ .md-button }

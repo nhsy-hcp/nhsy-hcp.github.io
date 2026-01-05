@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# My Example Labs
+# My Repositories
 
 Hands-on examples for HashiCorp tools and modern cloud infrastructure automation.
 
@@ -54,5 +54,6 @@ Workload orchestration for containers, VMs, and standalone applications.
 | [**docker-vault-stack**](https://github.com/nhsy-hcp/docker-vault-stack) | Docker-based Vault HA development environment | <span class="badge badge-vault">Vault</span> <span class="badge badge-docker">Docker</span> |
 | [**learn-vault-secrets-operator**](https://github.com/nhsy-hcp/learn-vault-secrets-operator) | Vault Secrets Operator with Kubernetes integration | <span class="badge badge-vault">Vault</span> <span class="badge badge-kubernetes">Kubernetes</span> |
 | [**terraform-gcp-vault-gke**](https://github.com/nhsy-hcp/terraform-gcp-vault-gke) | Deploy Vault on Google Kubernetes Engine | <span class="badge badge-vault">Vault</span> <span class="badge badge-terraform">Terraform</span> <span class="badge badge-gcp">GCP</span> |
+| [**vault-regression-testing**](https://github.com/nhsy-hcp/vault-regression-testing) | Automated regression testing framework for Vault | <span class="badge badge-vault">Vault</span> <span class="badge badge-docker">Docker</span> <span class="badge badge-terraform">Terraform</span> |
 
 [View all repositories →](repositories/index.md)
