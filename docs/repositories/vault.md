@@ -1313,3 +1313,143 @@ task clean
 - Repository: [https://github.com/nhsy-hcp/vault-regression-testing](https://github.com/nhsy-hcp/vault-regression-testing)
 - Solution guide: [https://github.com/nhsy-hcp/vault-regression-testing/blob/main/docs/solution-guide.md](https://github.com/nhsy-hcp/vault-regression-testing/blob/main/docs/solution-guide.md)
 - Regression test workflow: [https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/regression-test.yml](https://github.com/nhsy-hcp/vault-regression-testing/actions/workflows/regression-test.yml)
+
+---
+
+## vault-tools
+
+Read-only Python CLI for HashiCorp Vault operations, covering recursive namespace auditing with a markdown report, activity log export and entity export.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/vault-tools){ .md-button }
+
+<span class="badge badge-vault">Vault</span>
+
+### Overview
+
+A unified Python command-line tool for HashiCorp Vault operations, aimed at defensive security work. It audits namespaces, auth methods and secrets engines across a cluster, exports activity log data and entity data, and writes JSON, CSV and markdown artefacts to an `outputs/` directory. The tool only reads from Vault — it never writes — and ships an ACL policy granting just the endpoints it calls.
+
+### What it demonstrates
+
+- Four subcommands — `namespace-audit`, `activity-export`, `entity-export` and `all` (the first three in sequence over a single Vault connection).
+- Recursive, multi-threaded namespace traversal (`--workers`, default 4) with rate limiting, producing per-run JSON dumps, CSV summaries and a markdown report named `{cluster-name}-audit-report-{YYYYMMDD}.md`.
+- An audit report covering access gaps (namespaces the token was denied), the namespace hierarchy, auth method and secrets engine type distribution, per-namespace ACL policy names, Sentinel policies and security observations.
+- Lease findings calibrated against the cluster's own `max_lease_ttl`, read from `sys/config/state/sanitized`, so a mount is flagged only when it overrides that ceiling; mounts left at `0` (inherit the system default) are deliberately not flagged.
+- Sentinel EGP/RGP collection that distinguishes "endpoints unavailable on this cluster" from "zero policies found" — `sys/policies/egp` and `sys/policies/rgp` exist only on Vault Enterprise with the Governance and Policy module, and a 404 is detected once and then not probed again. `--no-sentinel` skips the collection.
+- A least-privilege ACL policy (`audit-policy.hcl`) that must live in the root namespace, reaching child namespaces through `+`-segment paths covering five levels of nesting; `sys/policies/acl` is granted `list` but never `read`, so policy bodies are never retrievable.
+- Activity and entity exports over a required `--start-date`/`--end-date` window, treating Vault's `204 No Content` (no client records in range) as success rather than an error.
+- Operational hardening: connection pooling, transport-level retry with exponential backoff on 408/429/5xx, structured JSON logging for aggregation, and a rotating audit log at `outputs/audit/audit.log` recording username, hostname and PID.
+
+### Architecture
+
+```mermaid
+graph TD
+    CLI["main.py: argparse CLI, entry point vault-tools"]
+    NSA["src/namespace_audit/main.py: threaded traversal"]
+    REPORT["src/namespace_audit/report.py: markdown report"]
+    ACT["src/activity_export/main.py"]
+    ENT["src/entity_export/main.py"]
+    CLIENT["src/common/vault_client.py: pooled HTTP client with retry"]
+    CONFIG["src/common/config.py: env vars and output paths"]
+    AUDITLOG["src/common/audit_logger.py: outputs/audit/audit.log"]
+    VAULT["Vault HTTP API: sys/namespaces, sys/auth, sys/mounts, sys/policies, sys/internal/counters"]
+    OUT["outputs/: JSON dumps, CSV summaries, markdown report"]
+
+    CLI --> CONFIG
+    CLI --> NSA
+    CLI --> ACT
+    CLI --> ENT
+    NSA --> REPORT
+    NSA --> CLIENT
+    ACT --> CLIENT
+    ENT --> CLIENT
+    CLIENT -->|"read and list only"| VAULT
+    CLI --> AUDITLOG
+    REPORT --> OUT
+    ACT --> OUT
+    ENT --> OUT
+```
+
+`main.py` is the entry point, exposed as the `vault-tools` console script and also runnable directly as a PEP 723 script. It builds an argparse parser whose global flags (`--debug`, `--json-logs`, `--output-dir`) sit on a shared parent parser, so they are accepted either before or after the subcommand, then dispatches to one of the three modules under `src/`.
+
+`src/namespace_audit/` holds the traversal in `main.py` and the markdown rendering in `report.py`; `src/activity_export/` and `src/entity_export/` handle the two export paths. Shared code lives in `src/common/`: `vault_client.py` is the single point of contact with the Vault HTTP API and owns connection pooling and retry, `config.py` merges environment variables and resolves output directories up front (so a non-writable directory fails before a full traversal runs rather than after it), `file_utils.py` handles JSON and CSV writing, `logging_config.py` configures structured logging with a per-run correlation ID, and `audit_logger.py` writes the rotating audit log.
+
+The client is built from `VAULT_ADDR`, `VAULT_TOKEN` and optionally `VAULT_SKIP_VERIFY`; all three are read from the environment, with no CLI equivalents. Console output is deliberately quiet — a progress bar, the summary table and the list of files written — because per-namespace detail printed alongside a live progress bar corrupts it; `--debug` surfaces that detail and `--json-logs` emits the full event stream.
+
+### Prerequisites
+
+- Python 3.12 or higher.
+- [uv](https://docs.astral.sh/uv/) package manager.
+- Task ([https://taskfile.dev](https://taskfile.dev)) for the automation targets.
+- Access to a HashiCorp Vault instance, with `VAULT_ADDR` and `VAULT_TOKEN` exported (`VAULT_SKIP_VERIFY=true` optional, for dev environments); `.env.example` provides the template.
+- A Vault token carrying the `audit-policy.hcl` policy, created in the root namespace. `sys/internal/counters/activity/export` is root-protected, so the `sudo` capability on that path is required for `entity-export`.
+- Vault Enterprise with the Governance and Policy module for the Sentinel report section; every other cluster returns 404 there and the section says so.
+- `act` ([https://github.com/nektos/act](https://github.com/nektos/act)) for `task test:gha`, optional.
+
+### Quickstart
+
+```bash
+git clone https://github.com/nhsy-hcp/vault-tools.git
+cd vault-tools
+
+# One-time setup: uv, dependencies (including dev extras) and pre-commit hooks
+task init
+
+# Configure the connection
+cp .env.example .env
+export VAULT_ADDR="https://vault.example.com"
+export VAULT_TOKEN="your-vault-token"
+
+# Mint a least-privilege token instead of using root (root namespace)
+vault policy write vault-tools-audit audit-policy.hcl
+export VAULT_TOKEN=$(vault token create -policy=vault-tools-audit -ttl=1h -field=token)
+
+# Run the CLI
+uv run vault-tools --help
+uv run vault-tools namespace-audit
+uv run vault-tools namespace-audit --workers 8 --output-dir custom-output
+uv run vault-tools namespace-audit --no-sentinel
+
+# Exports require both dates
+uv run vault-tools activity-export -s 2026-01-01 -e 2026-01-31
+uv run vault-tools entity-export -s 2026-01-01 -e 2026-01-31
+
+# All three in sequence over one connection
+uv run vault-tools all -s 2026-01-01 -e 2026-01-31
+
+# Equivalent via the task runner; everything after -- is passed through
+task run -- all -s 2026-01-01 -e 2026-01-31
+
+# Seed no-op Sentinel policies to exercise that report section locally
+task seed:sentinel
+task seed:sentinel -- team-a/ team-b/
+
+# Tests and CI gate
+task test
+task test:all
+task test:ci
+task test:gha
+```
+
+### Cleanup
+
+The tool never writes to Vault, so there is no infrastructure to tear down — only local artefacts and, if they were seeded, the example Sentinel policies.
+
+```bash
+# Remove the no-op Sentinel policies written by seed:sentinel
+task unseed:sentinel
+
+# Remove build artefacts, Python and test caches, .tmp/ and coverage reports
+task clean
+```
+
+The `outputs/` directory holding the JSON, CSV, markdown and audit-log artefacts is left in place by `task clean`; remove it manually if the reports are no longer needed.
+
+### Links
+
+- Repository: [https://github.com/nhsy-hcp/vault-tools](https://github.com/nhsy-hcp/vault-tools)
+- ACL policy: [https://github.com/nhsy-hcp/vault-tools/blob/main/audit-policy.hcl](https://github.com/nhsy-hcp/vault-tools/blob/main/audit-policy.hcl)
+- CI workflow: [https://github.com/nhsy-hcp/vault-tools/actions/workflows/test.yml](https://github.com/nhsy-hcp/vault-tools/actions/workflows/test.yml)
+- Vault Sentinel policies: [https://developer.hashicorp.com/vault/docs/enterprise/sentinel](https://developer.hashicorp.com/vault/docs/enterprise/sentinel)
+- Vault client count and activity documentation: [https://developer.hashicorp.com/vault/docs/concepts/client-count](https://developer.hashicorp.com/vault/docs/concepts/client-count)
+- uv: [https://docs.astral.sh/uv/](https://docs.astral.sh/uv/)
+- License: Mozilla Public License 2.0 (`LICENSE` in repo)
