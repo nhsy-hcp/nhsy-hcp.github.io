@@ -1,0 +1,13 @@
+[project]
+name = "nhsy-hcp-site"
+version = "0.1.0"
+description = "Hands-on labs for HashiCorp Vault, Nomad, Consul and Terraform on GCP, Kubernetes and Docker."
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    # Pinned exactly: Zensical is alpha (0.0.x) and ships breaking changes
+    # every few days. Bump deliberately, never by resolver drift.
+    "zensical==0.0.64",
+]

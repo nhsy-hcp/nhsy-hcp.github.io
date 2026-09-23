@@ -2,20 +2,39 @@
 
 version: '3'
 
-vars:
-  GREETING: Hello, world!
-
 tasks:
   default:
     cmds:
       - task --list
     silent: true
 
-  install:
+  deps:
+    desc: Check required tooling is available
     cmds:
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
+      - uv --version
+      - uv run zensical --version
+
+  init:
+    desc: One-time environment setup
+    cmds:
+      - uv sync
+
+  install:
+    desc: Alias for init
+    cmds:
+      - task: init
 
   up:
+    desc: Serve the site locally with live reload
     cmds:
-      - mkdocs serve
+      - uv run zensical serve
+
+  build:
+    desc: Build the static site into site/
+    cmds:
+      - uv run zensical build --clean --strict
+
+  clean:
+    desc: Remove build artefacts and temporary files
+    cmds:
+      - rm -rf site .tmp
