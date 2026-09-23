@@ -834,6 +834,113 @@ make destroy
 
 ---
 
+## terraform-vault-gha-cicd
+
+Terraform configurations provisioning an HCP Vault cluster and configuring keyless CI/CD from GitHub Actions, exchanging GitHub OIDC tokens for scoped Vault tokens through the JWT auth method.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/terraform-vault-gha-cicd){ .md-button }
+
+<span class="badge badge-vault">Vault</span> <span class="badge badge-terraform">Terraform</span> <span class="badge badge-aws">AWS</span>
+
+### Overview
+
+Terraform configurations that provision an HCP Vault cluster and configure it for keyless, tokenless CI/CD from GitHub Actions. Instead of storing long-lived Vault tokens as GitHub secrets, each workflow run exchanges its short-lived GitHub OIDC token for a scoped Vault token via Vault's JWT auth method. Authorisation is enforced through Vault namespaces, JWT roles bound to specific repositories and workflows, and least-privilege ACL policies.
+
+### What it demonstrates
+
+- A multi-namespace, self-service design: a central `admin` namespace owns authentication and per-namespace role and policy provisioning, while each tenant namespace (for example `tn001`) manages its own day-2 configuration in isolation.
+- GitHub OIDC to Vault JWT trust with no static secrets — `hashicorp/vault-action` presents the run's JWT to the `jwt_github` auth backend, Vault validates the `repository` and `workflow` claims against the role's `bound_claims`, and the issued token is revoked when the run completes.
+- A day-0/day-1 versus day-2 split: `bootstrap/` creates the HVN, Vault cluster, admin-level JWT auth backend, the `github-admin` role and the `self-token-admin` / `github-admin` policies, and deliberately holds no per-namespace resources; `namespace-admin/` creates child namespaces and configures authentication and authorisation inside each one.
+- Reusable Terraform modules under `modules/` — `kv-engine`, `pki-intermediate`, `pki-role`, `jwt-auth`, `hcp-tf-workspace`, `acl-policy` and `namespace` — each supplied a `vault` provider scoped to the target namespace by its caller.
+- A PKI intermediate CA in the `admin/tn001` tenant namespace following the offline-root pattern, with CSR signing, import and verification driven from Taskfile targets (`task pki:int:sign`, `pki:int:import`, `pki:int:verify`) and issue/sign endpoint tests (`task pki:test`).
+- Thin per-namespace GitHub Actions callers (`namespace-admin.yml`, `namespace-tn001.yml`) invoking a single reusable workflow (`_terraform-namespace.yml`) with `lint` and `deploy` jobs.
+- A documented onboarding path for a new tenant namespace, and local CI verification with `act` (`task test:ci`).
+
+### Architecture
+
+```mermaid
+graph TD
+    CALLERS["GitHub Actions callers: namespace-admin.yml, namespace-tn001.yml"]
+    REUSE["_terraform-namespace.yml (reusable workflow): lint then deploy"]
+    OIDC["GitHub OIDC provider: short-lived JWT"]
+    JWT["admin namespace: auth/jwt_github backend"]
+    ROLES["Roles: github-admin, github-namespace-tn001 (bound_claims on repository and workflow)"]
+    POLICIES["Policies: self-token-admin, github-admin, github-namespace-admin"]
+    TN001["Namespace admin/tn001: PKI intermediate CA, namespace policies"]
+    BOOT["bootstrap/: HVN, Vault cluster, admin token, HCP Terraform project, team token, workspaces"]
+
+    CALLERS --> REUSE
+    REUSE -->|"id-token: write"| OIDC
+    OIDC -->|"JWT presented by hashicorp/vault-action"| JWT
+    JWT --> ROLES
+    ROLES --> POLICIES
+    POLICIES --> TN001
+    BOOT --> JWT
+    BOOT --> REUSE
+```
+
+The `bootstrap/` configuration is a day-0/day-1 concern run interactively: it creates the HCP HVN and Vault cluster (defaults `aws`, `us-west-2`, `dev` tier, CIDR `172.25.16.0/20`, public endpoint enabled), the admin token, the admin-level `jwt_github` auth backend with the `github-admin` role, and the HCP Terraform project, team token and remote-state workspaces for each day-2 module listed in `namespaces`.
+
+`namespace-admin/` and `namespace-tn001/` are day-2 concerns executed by GitHub Actions against HCP Terraform workspaces. `namespace-admin/` creates the child namespaces through `modules/namespace`, which installs the `self-token-admin` and `github-namespace-admin` policies and mounts a `jwt_github` auth backend with a per-namespace role inside each child. `namespace-tn001/` then configures the tenant's own resources, currently a PKI intermediate CA.
+
+There is a deliberate chicken-and-egg step at the start: the `vault` provider cannot initialise until the cluster exists, and the HCP Terraform `bootstrap` workspace must exist before `terraform init` runs, so the first-time flow begins with `task bootstrap:workspace:create`, which creates that workspace over the REST API.
+
+### Prerequisites
+
+- Terraform
+- Task ([https://taskfile.dev/](https://taskfile.dev/))
+- HCP CLI, authenticated with `hcp auth login` and `hcp profile init`
+- Vault CLI
+- An HCP project ID and an HCP Terraform organization (default `nhsy-hcp-org`)
+- Repository configuration for GitHub Actions: the `VAULT_ADDR` variable and the `TFE_TOKEN` secret, both set by `task bootstrap:gh-config`
+- `act` ([https://github.com/nektos/act](https://github.com/nektos/act)) for `task test:ci`, optional
+
+### Quickstart
+
+```bash
+task deps
+cp bootstrap/terraform.tfvars.example bootstrap/terraform.tfvars
+```
+
+Edit `bootstrap/terraform.tfvars` with the HCP `project_id` and desired configuration, then run the first-time end-to-end flow:
+
+```bash
+task bootstrap:workspace:create      # create bootstrap workspace via REST API
+task bootstrap:init && task bootstrap:lock
+task bootstrap:apply:hcp             # create cluster (HCP and random resources only)
+eval "$(task bootstrap:env)"         # set VAULT_ADDR and VAULT_TOKEN
+task bootstrap:apply:vault           # create child namespaces
+task bootstrap:apply                 # create HCP Terraform project, team, token and workspaces
+
+task namespace-admin:init && task namespace-admin:lock
+eval "$(task namespace-admin:env)"   # set TF_VAR_vault_addr and TF_VAR_vault_token
+```
+
+Pushing to `main` then triggers the `namespace-admin.yml` workflow, which applies the `jwt_github` auth backend, roles and policies. On day two, with the cluster already in place, a single `task bootstrap:apply` is sufficient.
+
+The `TFE_TOKEN` team token rotates on a seven-day schedule (`time_rotating` in `bootstrap/tfe.tf`); re-run `task bootstrap:gh-config` after each rotation to refresh the secret.
+
+```bash
+task lint
+task test:ci
+task vault:ui
+task pki:test
+```
+
+### Cleanup
+
+TODO: the README does not document teardown commands.
+
+### Links
+
+- Repository: [https://github.com/nhsy-hcp/terraform-vault-gha-cicd](https://github.com/nhsy-hcp/terraform-vault-gha-cicd)
+- Architecture documentation: [https://github.com/nhsy-hcp/terraform-vault-gha-cicd/blob/main/docs/architecture.md](https://github.com/nhsy-hcp/terraform-vault-gha-cicd/blob/main/docs/architecture.md)
+- PKI instructions: [https://github.com/nhsy-hcp/terraform-vault-gha-cicd/blob/main/docs/pki-instructions.md](https://github.com/nhsy-hcp/terraform-vault-gha-cicd/blob/main/docs/pki-instructions.md)
+- Vault JWT/OIDC auth method: [https://developer.hashicorp.com/vault/docs/auth/jwt](https://developer.hashicorp.com/vault/docs/auth/jwt)
+- GitHub Actions OIDC: [https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- Task: [https://taskfile.dev/](https://taskfile.dev/)
+
+---
 ## terraform-vault-onboarding
 
 Terraform configurations integrating HCP Vault with HCP Terraform, providing automated namespace provisioning, workspace management and authentication setup for multi-tenant Vault environments.
