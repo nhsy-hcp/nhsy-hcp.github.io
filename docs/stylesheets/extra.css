@@ -18,6 +18,15 @@
   --hc-vagrant: #1868f2;
   --hc-boundary: #f24c53;
   --hc-waypoint: #14c6cb;
+
+  /* Platform colours (badge labels used across the repo catalogue) */
+  /* Badge fills are darkened from brand colours to clear WCAG AA (4.5:1)
+     against white badge text. Brand hues stay in --hc-* for other uses. */
+  --pf-docker: #117aca;
+  --pf-kubernetes: #326ce5;
+  --pf-aws: #ff9900;
+  --pf-azure: #0078d4;
+  --pf-gcp: #1f6ef2;
 }
 
 /* Light mode */
@@ -139,11 +148,111 @@
   margin-right: 0.5rem;
 }
 
-.badge-terraform { background-color: var(--hc-terraform); color: white; }
-.badge-vault { background-color: var(--hc-vault); color: black; }
-.badge-consul { background-color: var(--hc-consul); color: white; }
-.badge-nomad { background-color: var(--hc-nomad); color: white; }
-.badge-packer { background-color: var(--hc-packer); color: white; }
-.badge-aws { background-color: #ff9900; color: black; }
-.badge-azure { background-color: #0078d4; color: white; }
-.badge-gcp { background-color: #4285f4; color: white; }
+.badge-terraform { background-color: var(--hc-terraform); color: #fff; }
+.badge-vault { background-color: var(--hc-vault); color: #000; }
+.badge-consul { background-color: #ea111a; color: #fff; }
+.badge-nomad { background-color: var(--hc-nomad); color: #000; }
+.badge-packer { background-color: var(--hc-packer); color: #000; }
+.badge-docker { background-color: var(--pf-docker); color: #fff; }
+.badge-kubernetes { background-color: var(--pf-kubernetes); color: #fff; }
+.badge-aws { background-color: var(--pf-aws); color: #000; }
+.badge-azure { background-color: var(--pf-azure); color: #fff; }
+.badge-gcp { background-color: var(--pf-gcp); color: #fff; }
+/* ------------------------------------------------------------------ */
+/* Badge layout                                                        */
+/* ------------------------------------------------------------------ */
+
+/* Badges sit in wrapping rows inside cards, so use a gap rather than a
+   trailing margin that leaves a ragged edge on the last item in a row. */
+.badge {
+  margin-right: 0;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+}
+
+.md-typeset .grid.cards .badge + .badge,
+.md-typeset p .badge + .badge {
+  margin-left: 0.35rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Grid cards                                                          */
+/* ------------------------------------------------------------------ */
+
+.md-typeset .grid.cards > ul > li {
+  border-radius: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Respect users who ask for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .grid.cards > ul > li,
+  .card {
+    transition: none;
+  }
+  .md-typeset .grid.cards > ul > li:hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Home page hero                                                      */
+/* ------------------------------------------------------------------ */
+
+.md-typeset .hero {
+  padding: 2.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .hero h1 {
+  font-size: 2.4rem;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+  color: var(--md-default-fg-color);
+}
+
+.md-typeset .hero > p:first-of-type {
+  font-size: 0.9rem;
+  max-width: 34rem;
+  color: var(--md-default-fg-color--light);
+  margin-bottom: 1.4rem;
+}
+
+/* Buttons wrap instead of overflowing on narrow screens. */
+.md-typeset .hero .md-button {
+  margin: 0 0.5rem 0.5rem 0;
+}
+
+@media screen and (max-width: 480px) {
+  .md-typeset .hero {
+    padding: 1.5rem 0 1rem;
+  }
+
+  .md-typeset .hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .md-typeset .hero > p:first-of-type {
+    font-size: 0.82rem;
+  }
+
+  /* Full-width stacked buttons are easier to hit on a phone. */
+  .md-typeset .hero .md-button {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    text-align: center;
+  }
+}
