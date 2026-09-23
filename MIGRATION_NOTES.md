@@ -80,12 +80,52 @@ via `pymdownx.snippets.auto_append`, and Mermaid custom fences.
 All original URLs are preserved: `/`, `/repositories/`, `/repositories/nomad/`,
 `/repositories/terraform/`, `/repositories/vault/`, `/about/`.
 
-`sitemap.xml` is generated and contains exactly the six navigation URLs — the
-orphaned stub pages under `docs/hashicorp/` and `docs/cloud/` are built but excluded
-from the sitemap.
+`sitemap.xml` is generated and contains exactly the seven navigation URLs (the six
+above plus `/tags/`) — the orphaned stub pages under `docs/hashicorp/` and
+`docs/cloud/` are built but excluded from the sitemap.
 
 ## Housekeeping done in passing
 
 - `docs/includes/abbreviations.md` had unrelated setup prose appended after the
   abbreviation definitions. Because the file is auto-appended to every page, this was
   removed.
+
+## Lighthouse baseline (2026-09-23)
+
+Measured against `zensical serve` on the local build, home page, headless Chrome:
+
+| Category | Score |
+|---|---|
+| Performance | 74 |
+| Accessibility | 82 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+### Performance caveat
+
+The Performance figure understates production. The largest single opportunity
+Lighthouse reports is "Enable text compression — est. savings 362 KiB", which is an
+artefact of the local dev server: `zensical serve` does not gzip, whereas GitHub Pages
+serves compressed assets automatically. Re-run against the deployed site for a figure
+that reflects reality.
+
+The remaining genuine cost is the render-blocking Google Fonts request for Inter and
+JetBrains Mono (~1.5 s estimated). Self-hosting the fonts would remove the third-party
+round trip, but that is out of scope for this refactor.
+
+### Accessibility: four upstream theme defects
+
+All four zero-scoring audits originate in Zensical's own `classic` theme markup, not in
+site content, `extra.css`, or the `main.html` override:
+
+| Audit | Offending element | Origin |
+|---|---|---|
+| `aria-progressbar-name` | `<div class="md-progress" role="progressbar">` | `navigation.instant.progress` feature |
+| `aria-prohibited-attr` | `<label class="md-overlay" aria-label="Navigation">` and header button labels | theme header/drawer |
+| `aria-required-attr` | search `<input role="combobox">` missing required `aria-*` | theme search |
+| `button-name` | `<button class="r">` with no accessible name | theme |
+
+These are not fixable from site configuration without overriding theme partials.
+Disabling the `navigation.instant.progress` feature in `zensical.toml` would remove the
+first one; the other three are inherent to the current theme build. Worth raising
+upstream with the Zensical project.
