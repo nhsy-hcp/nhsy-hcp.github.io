@@ -35,3 +35,9 @@ Throughout my career, I have delivered solutions across multiple sectors:
 ## Connect
 - [:fontawesome-brands-github: GitHub](https://github.com/nhsy-hcp)
 - [:fontawesome-brands-linkedin: LinkedIn](https://www.linkedin.com/in/narish-samplay/)
+
+## Disclaimer
+
+The repositories showcased on this site are for demonstration and educational purposes
+only. They are not production-ready, carry no warranty or support, and are not
+affiliated with or endorsed by HashiCorp.
