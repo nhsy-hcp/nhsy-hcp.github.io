@@ -60,13 +60,13 @@ Hands-on labs for HashiCorp Vault, Nomad, Consul and Terraform on GCP, Kubernete
 
     <span class="badge badge-vault">Vault</span> <span class="badge badge-terraform">Terraform</span> <span class="badge badge-gcp">GCP</span>
 
--   :material-test-tube:{ .lg .middle } **[vault-regression-testing](https://github.com/nhsy-hcp/vault-regression-testing)**
+-   :material-key-chain:{ .lg .middle } **[terraform-vault-gha-cicd](https://github.com/nhsy-hcp/terraform-vault-gha-cicd)**
 
     ---
 
-    Automated regression testing framework for Vault.
+    Keyless GitHub Actions CI/CD with HCP Vault JWT auth.
 
-    <span class="badge badge-vault">Vault</span> <span class="badge badge-docker">Docker</span> <span class="badge badge-terraform">Terraform</span>
+    <span class="badge badge-vault">Vault</span> <span class="badge badge-terraform">Terraform</span> <span class="badge badge-aws">AWS</span>
 
 </div>
 
