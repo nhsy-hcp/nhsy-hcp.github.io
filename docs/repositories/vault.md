@@ -38,6 +38,14 @@ Complete Docker-based Vault development environment with integrated HA setup.
 
 ---
 
+## learn-vault-secrets-operator
+
+Vault Secrets Operator lab for Kubernetes covering static KV, dynamic database and PKI secrets, and the Vault CSI driver.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/learn-vault-secrets-operator){ .md-button }
+
+---
+
 ## multipass-vault-hsm
 
 Vault deployment with HSM support using SoftHSM and Multipass for PKI operations and managed key storage.
