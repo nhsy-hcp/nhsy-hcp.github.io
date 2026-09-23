@@ -1,7 +1,7 @@
 [project]
 site_name = "nhsy-hcp"
 site_url = "https://nhsy-hcp.github.io/"
-site_description = "My Example Labs"
+site_description = "Hands-on labs for HashiCorp Vault, Nomad, Consul and Terraform on GCP, Kubernetes and Docker."
 site_author = "nhsy-hcp"
 
 copyright = "Copyright &copy; 2026 nhsy-hcp"

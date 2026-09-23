@@ -1,3 +1,7 @@
+---
+description: Catalogue of hands-on HashiCorp lab repositories, grouped by Nomad, Terraform and Vault.
+---
+
 # Repositories Overview
 
 A catalog of featured open-source repositories focused on HashiCorp technologies and cloud infrastructure automation.
