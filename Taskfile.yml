@@ -13,6 +13,7 @@ tasks:
     cmds:
       - uv --version
       - uv run zensical --version
+      - gitleaks version
 
   init:
     desc: One-time environment setup
@@ -29,6 +30,20 @@ tasks:
     cmds:
       - uv run zensical serve
 
+  down:
+    desc: Stop a detached local preview server
+    # `task up` runs in the foreground, so Ctrl+C is the normal way to stop it.
+    # This exists for a serve left running detached, and is a no-op otherwise.
+    cmds:
+      - |
+        pid=$(lsof -t -iTCP:8000 -sTCP:LISTEN 2>/dev/null || true)
+        if [ -n "$pid" ]; then
+          # /bin/kill, not `kill`: Task's embedded shell has no kill builtin.
+          /bin/kill $pid && echo "stopped preview server (pid $pid)"
+        else
+          echo "no preview server listening on port 8000"
+        fi
+
   build:
     desc: Build the static site into site/
     cmds:
@@ -38,3 +53,30 @@ tasks:
     desc: Remove build artefacts and temporary files
     cmds:
       - rm -rf site .tmp
+
+  lint:
+    desc: Run security and configuration checks
+    cmds:
+      - gitleaks detect --no-git --redact
+      - uv run python -c "import tomllib; tomllib.load(open('zensical.toml','rb')); print('zensical.toml ok')"
+      - uv run python -c "import yaml,glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/workflows/*.yml')]; print('workflows ok')"
+      - uv run python -c "import yaml; yaml.safe_load(open('Taskfile.yml')); print('Taskfile.yml ok')"
+
+  test:
+    desc: Verify the site builds cleanly with no warnings
+    # For a static site a clean strict build is the test: --strict fails on
+    # warnings, including broken internal links and anchors.
+    cmds:
+      - task: build
+
+  test:all:
+    desc: Run the full local verification suite
+    cmds:
+      - task: lint
+      - task: test
+
+  test:ci:
+    desc: Run the verification pipeline exactly as CI does
+    cmds:
+      - uv sync --frozen
+      - uv run zensical build --clean --strict

@@ -50,3 +50,6 @@ Thumbs.db
 *.bak
 /.plans/
 /.tmp/
+/.claude/
+/.cache/
+/CLAUDE.md
