@@ -17,6 +17,7 @@ nav = [
     { "Terraform" = "repositories/terraform.md" },
     { "Vault" = "repositories/vault.md" },
   ] },
+  { "Tags" = "tags.md" },
   { "About" = "about.md" },
 ]
 
