@@ -28,6 +28,8 @@ extra_css = ["stylesheets/extra.css"]
 variant = "classic"
 custom_dir = "docs/overrides"
 language = "en"
+logo = "assets/logo.svg"
+favicon = "assets/favicon.svg"
 features = [
   "navigation.instant",
   "navigation.instant.progress",
@@ -49,7 +51,6 @@ features = [
 
 [project.theme.icon]
 repo = "fontawesome/brands/github"
-logo = "material/terraform"
 
 [project.theme.font]
 text = "Inter"
