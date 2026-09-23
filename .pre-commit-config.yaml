@@ -1,0 +1,43 @@
+# Static documentation site: Markdown content, TOML/YAML config, CSS and SVG.
+# There is no Python source or shell script in this repo today; shellcheck is
+# included so it activates automatically if scripts/ is ever added.
+default_install_hook_types: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Two trailing spaces are a hard line break in Markdown.
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: check-case-conflict
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+
+  - repo: local
+    hooks:
+      # The real test for a docs site: --strict fails on warnings, including
+      # broken internal links and anchors.
+      - id: zensical-build
+        name: zensical build (strict)
+        entry: uv run zensical build --clean --strict
+        language: system
+        pass_filenames: false
+        files: ^(docs/|zensical\.toml$)
