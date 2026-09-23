@@ -1,3 +1,7 @@
+---
+description: Background, core expertise and industry experience of nhsy-hcp, covering HashiCorp tooling, cloud platforms and infrastructure as code.
+---
+
 # About
 
 ## Professional Summary

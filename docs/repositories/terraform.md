@@ -1,3 +1,7 @@
+---
+description: Infrastructure as code labs built with HashiCorp Terraform across cloud platforms.
+---
+
 # Terraform Repositories
 
 Infrastructure as code implementations using HashiCorp Terraform across multiple cloud platforms.
