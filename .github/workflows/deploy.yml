@@ -25,7 +25,7 @@ jobs:
       # No dependency cache: Zensical's publishing docs advise against caching
       # on CI while that functionality is being revised. See MIGRATION_NOTES.md.
       - name: Set up uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.2.0
 
       - name: Install dependencies
         run: uv sync --frozen
