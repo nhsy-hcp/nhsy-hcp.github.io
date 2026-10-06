@@ -68,6 +68,14 @@ Hands-on labs for HashiCorp Vault, Nomad, Consul and Terraform on GCP, Kubernete
 
     <span class="badge badge-vault">Vault</span> <span class="badge badge-terraform">Terraform</span> <span class="badge badge-aws">AWS</span>
 
+-   :material-clipboard-check-outline:{ .lg .middle } **[vault-ops-skill](https://github.com/nhsy-hcp/vault-ops-skill)**
+
+    ---
+
+    Read-only Vault audit and health skill for Claude Code.
+
+    <span class="badge badge-vault">Vault</span> <span class="badge badge-docker">Docker</span>
+
 </div>
 
 [View all repositories](repositories/index.md){ .md-button }

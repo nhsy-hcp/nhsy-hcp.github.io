@@ -1313,6 +1313,98 @@ TODO: the README does not document commands for removing the namespaces, engines
 
 ---
 
+## vault-ops-skill
+
+Read-only HashiCorp Vault operations skill for Claude Code that audits namespaces, checks cluster and replication health, inventories mounts and policies, reports client usage and compares audit runs.
+
+[:fontawesome-brands-github: View Repository](https://github.com/nhsy-hcp/vault-ops-skill){ .md-button }
+
+<span class="badge badge-vault">Vault</span> <span class="badge badge-docker">Docker</span>
+
+### Overview
+
+A Claude Code plugin that packages Vault operational checks as a skill. All Vault access goes through one bundled Python script that only issues GET and LIST requests and writes JSON results; Claude interprets those results, reports coverage gaps first, ranks and groups findings, and drafts remediation commands as text for a human to run. The check logic is ported from the `namespace-audit` command in [vault-tools](#vault-tools).
+
+### What it demonstrates
+
+- Seven script subcommands — `audit`, `health`, `inventory`, `usage`, `entities`, `policies` and `diff` — each writing a timestamped `{cluster}-{command}-{ts}.json` file (mode 0600) and printing only its path to stdout.
+- A rule catalogue (`VT-MOUNT-*`, `VT-NS-*`, `VT-HLTH-*`, `VT-REPL-*`, `VT-AUD-*`, `VT-SNAP-*`, `VT-ID-*`, `VT-POL-*`, `VT-SNT-*`, `VT-CLI-*`, `VT-LIC-*`, `VT-LEASE-*`) covering deprecated plugins, lease TTL overrides, audit devices, automated Raft snapshots, DR and performance replication lag, clock skew, Merkle corruption, entity hygiene and client growth, validated against a JSON schema.
+- Health checks spanning seal and HA status, Raft peers and autopilot, version and license expiry, replication peers and canary age, lease ceilings and node metrics from `sys/metrics`.
+- ACL and Sentinel policy review that records only names, body hashes and flagged rules, never policy bodies; reading bodies requires opt-in `vault-ops-policy-reader` and `vault-ops-sentinel-reader` add-on policies.
+- Finding fingerprints that let `diff` classify findings between two runs as new, resolved or unchanged.
+- A least-privilege `vault-ops-readonly` ACL policy with `sudo` only on the two protected list paths (`sys/audit` and `sys/storage/raft/snapshot-auto/config`), neither of which grants writes.
+- A local Vault Enterprise test environment in Docker or Podman Compose with a primary, a DR secondary and a performance secondary over TLS, plus seed scripts that deliberately trigger findings.
+- An offline `claude plugin eval` suite of thirteen cases covering skill triggering, finding interpretation, run comparison, partial coverage and refusal to change Vault.
+
+### Architecture
+
+```mermaid
+graph TD
+    USER["User prompt: audit, health, usage, ..."]
+    SKILL["skills/vault-ops/SKILL.md"]
+    SCRIPT["scripts/vault_ops.py: uv PEP 723 script"]
+    VAULT["Vault HTTP API"]
+    OUT[".tmp/vault-ops/: JSON findings, inventory, health, usage"]
+    REPORT["Ranked findings and drafted remediation"]
+
+    USER --> SKILL
+    SKILL -->|"runs subcommand"| SCRIPT
+    SCRIPT -->|"GET and LIST only"| VAULT
+    SCRIPT --> OUT
+    OUT -->|"interpreted by Claude"| REPORT
+```
+
+The skill definition and its resources live under `skills/vault-ops/`: `SKILL.md`, the `vault_ops.py` script, the ACL policies, `references/rules.md` with remediation guidance, and `schemas/findings.schema.json`. The repository is also a plugin marketplace (`.claude-plugin/marketplace.json`), so the skill installs without a checkout. The Compose files, seed scripts and Taskfile at the repository root exist only for development and testing.
+
+### Prerequisites
+
+- [uv](https://docs.astral.sh/uv/) and network access to a Vault cluster.
+- `VAULT_ADDR` and `VAULT_TOKEN` exported, with `VAULT_CACERT` recommended (`VAULT_SKIP_VERIFY` for dev only); `VAULT_NAMESPACE` and `VAULT_OPS_OUTPUT_DIR` are optional.
+- A token carrying the `vault-ops-readonly` policy.
+- For local development: Task, Docker or Podman with Compose v2, the `vault` CLI, `jq`, `curl`, `openssl`, and a Vault Enterprise licence with DR and performance replication (not needed for unit tests, the Community Edition tests or CI).
+
+### Quickstart
+
+```text
+/plugin marketplace add nhsy-hcp/vault-ops-skill
+/plugin install vault-ops@vault-ops-skill
+```
+
+```bash
+# Least-privilege token
+vault policy write vault-ops-readonly skills/vault-ops/policies/vault-ops-readonly.hcl
+export VAULT_ADDR=https://vault.example.com:8200 VAULT_CACERT=/path/to/ca.pem
+export VAULT_TOKEN="$(vault token create -policy=vault-ops-readonly -no-default-policy -orphan -ttl=1h -field=token)"
+claude
+
+# Local development cluster
+task init && task deps
+task up:all
+task dr:enable && task pr:enable
+task seed && task seed:findings && task token:policies && task token:pr
+task skill:run -- audit
+task test:all && task lint
+```
+
+Example prompts once the plugin is installed include "Audit my Vault", "Is the cluster healthy? When does the license expire?" and "What changed since the last audit?".
+
+### Cleanup
+
+The skill never writes to Vault. Results are written to `.tmp/vault-ops/` in the working directory by default and can be removed manually. For the local development cluster, `task test:e2e` rebuilds everything from scratch and wipes `.tmp/vault`.
+
+TODO: the README does not name a dedicated teardown task for the local Compose cluster; see the repository `AGENTS.md` for the full task list.
+
+### Links
+
+- Repository: [https://github.com/nhsy-hcp/vault-ops-skill](https://github.com/nhsy-hcp/vault-ops-skill)
+- Skill setup and safety notes: [https://github.com/nhsy-hcp/vault-ops-skill/blob/main/skills/vault-ops/README.md](https://github.com/nhsy-hcp/vault-ops-skill/blob/main/skills/vault-ops/README.md)
+- Rules and remediation: [https://github.com/nhsy-hcp/vault-ops-skill/blob/main/skills/vault-ops/references/rules.md](https://github.com/nhsy-hcp/vault-ops-skill/blob/main/skills/vault-ops/references/rules.md)
+- Replication setup: [https://github.com/nhsy-hcp/vault-ops-skill/blob/main/docs/replication.md](https://github.com/nhsy-hcp/vault-ops-skill/blob/main/docs/replication.md)
+- CI workflow: [https://github.com/nhsy-hcp/vault-ops-skill/actions/workflows/ci.yml](https://github.com/nhsy-hcp/vault-ops-skill/actions/workflows/ci.yml)
+- License: Mozilla Public License 2.0 (`LICENSE` in repo)
+
+---
+
 ## vault-regression-testing
 
 Regression testing framework for Vault that runs a Vault test environment in Docker, configures Vault resources with Terraform, and verifies the result with a Pytest suite.
